@@ -1,0 +1,70 @@
+from sklearn.feature_extraction.text import CountVectorizer
+import pandas as pd
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from collections import Counter
+from nltk.stem import SnowballStemmer
+from nltk.corpus import stopwords
+from nltk.tokenize import sent_tokenize, word_tokenize
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('snowball_data')
+
+# Metninizi yükleyin
+with open("metin.txt", "r") as f:
+    text = f.read()
+
+# Tüm harfleri küçült
+text = text.lower()
+
+# Kelimeleri kategorilere göre ayır
+categories = {
+    'ekonomi': ['ekonomi', 'ticaret', 'para', 'döviz', 'borsa', 'piyasa', 'faiz', 'kredi', 'ithalat', 'ihracat','kriz','kriptopara','finans','banka'],
+    'siyaset': ['siyaset', 'parti', 'hükümet', 'cumhurbaşkanı', 'başbakan', 'bakan', 'seçim', 'anayasa', 'yasa', 'meclis','muhalefet','iktidar','akp','chp','mhp','iyi parti','hdp','hüda par','dp','memleket partisi'],
+    'eğitim': ['eğitim', 'okul', 'üniversite', 'öğrenci', 'öğretmen', 'sınav', 'ödev', 'ders', 'kitap', 'burs'],
+    'sağlık': ['sağlık', 'hastane', 'doktor', 'ilaç', 'tedavi', 'hastalık', 'aşı', 'koronavirüs', 'pandemi', 'salgın'],
+    'spor': ['spor', 'futbol', 'basketbol', 'voleybol', 'maç', 'gol', 'hakem', 'takım', 'lig', 'şampiyona'],
+    'kültür': ['kültür', 'sanat', 'müzik', 'sinema', 'tiyatro', 'sergi', 'heykel', 'resim', 'yazar', 'şair'],
+    'bilim': ['bilim', 'teknoloji', 'uzay', 'robot', 'yapay zeka', 'programlama', 'internet', 'mobil', 'uygulama', 'donanım']
+    
+}
+
+#stop_words = set(stopwords.words('turkish'))
+stop_words = set(nltk.corpus.stopwords.words('turkish'))
+stop_words = ['birkaç', 'daha', 'neden', 'siz', 'aslında', 'hiç', 'belki', 'da', 'kez', 'mü', 'nasıl', 'nerde', 'sanki', 'hem', 'mı', 'gibi', 'niçin', 'biz', 'eğer', 'de', 'ise', 'ne', 'defa', 'yani', 'her', 'hepsi', 'bu', 'ya', 'kim', 'acaba', 'biri', 'diye', 'tüm', 'az', 've', 'bazı', 'hep', 'veya', 'ama', 'en', 'nereye', 'o', 'çünkü', 'ile', 'için', 'mu', 'şey', 'şu', 'niye', 'çok', 'birşey', 'ki', 'nerede']
+vectorizer = CountVectorizer(stop_words=stop_words)
+
+# Kelime vektörlerini oluşturun
+word_vectors = vectorizer.fit_transform([text])
+
+words = word_tokenize(text)
+
+category_words = [word for words in categories.values() for word in words]
+
+def calculate_percentage(count, total):
+    if total == 0:
+        return 0
+    else:
+        return count / total * 100
+            
+def categorize_words(words, categories):
+    word_counts = {category: 0 for category in categories}
+    
+    for word in words:
+        for category, category_words in categories.items():
+            if stemmer.stem(word) in category_words:
+                word_counts[category] += 1
+                
+    return word_counts
+
+# Kelimeleri kategorilere göre analiz et
+word_counts = categorize_words(words, categories)
+
+# Sonuçları bir pandas DataFrame'inde görüntüle
+df_word_counts = pd.DataFrame(list(word_counts.items()), columns=['Kategori', 'Sıklığı'])
+df_word_counts = df_word_counts.sort_values('Sıklığı', ascending=False).reset_index(drop=True)
+
+# Sonuçları yazdır
+print('Kategori kelime sayıları:')
+print(df_word_counts)
